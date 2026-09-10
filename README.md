@@ -33,7 +33,9 @@ Tracked as GitHub issues under four milestones, in dependency order — each
 should be provable before the next is worth starting:
 
 1. **Reservation Store** — the correctness core. An atomic Redis claim,
-   proven under real concurrency, before anything else is built around it.
+   proven under real concurrency, then load-tested directly against Redis to
+   find the real single-key throughput ceiling (see the stack doc's capacity
+   section) — before anything else is built around it.
 2. **Checkout + Palang** — the endpoint that talks to money, guarded by
    idempotency and rate limiting from the start.
 3. **Admission Gate + Queue** — where the thundering herd actually lands,
