@@ -53,6 +53,19 @@
       <artifactId>palang-ratelimit-spring-boot-starter</artifactId>
       <version>0.4.0</version>
     </dependency>
+    <!-- Optional in the starter itself, required here because store: redis
+         is configured. Without these, Redis-mode rate limiting has no
+         RateLimiterSource bean to wire and the app fails to start. -->
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j_jdk17-redis-common</artifactId>
+      <version>8.14.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.bucket4j</groupId>
+      <artifactId>bucket4j_jdk17-lettuce</artifactId>
+      <version>8.14.0</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>

@@ -23,7 +23,7 @@ import java.util.Set;
 @Service
 public class ReservationCleanupService {
 
-    static final String PENDING_KEY = "reservations:pending";
+    public static final String PENDING_KEY = "reservations:pending";
 
     private final StringRedisTemplate redis;
     private final Clock clock;

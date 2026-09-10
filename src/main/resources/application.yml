@@ -23,3 +23,19 @@ management:
   health:
     redis:
       enabled: true
+
+palang:
+  idempotency:
+    store: redis
+    require-key: true   # checkout must never run unguarded
+    ttl: 30m
+  rate-limit:
+    store: redis
+    capacity: 20
+    refill-period: 1m
+    fail-open: false    # architecture doc §08: checkout's outage IS the correctness risk
+                         # NOTE: Palang's rate-limit filter is global per-app, not per-route
+                         # yet, so this applies to every endpoint, not just /checkout. Fine
+                         # while checkout is the only real route; becomes a real conflict once
+                         # Milestone 3 adds the Admission Gate, which the architecture doc says
+                         # should fail OPEN. Tracked as a known gap, not silently ignored.
