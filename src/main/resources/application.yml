@@ -1,0 +1,25 @@
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6389
+  datasource:
+    url: jdbc:h2:mem:flashsale
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
