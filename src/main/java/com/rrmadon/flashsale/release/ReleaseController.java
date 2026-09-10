@@ -24,15 +24,18 @@ public class ReleaseController {
     private final QueueStore queue;
     private final StringRedisTemplate redis;
     private final CheckoutMetrics metrics;
+    private final KillSwitch killSwitch;
     private final int baseBatchSize;
     private final Duration admittedTtl;
 
     public ReleaseController(QueueStore queue, StringRedisTemplate redis, CheckoutMetrics metrics,
+                              KillSwitch killSwitch,
                               @Value("${flashsale.release.base-batch-size:50}") int baseBatchSize,
                               @Value("${flashsale.release.admitted-ttl:5m}") Duration admittedTtl) {
         this.queue = queue;
         this.redis = redis;
         this.metrics = metrics;
+        this.killSwitch = killSwitch;
         this.baseBatchSize = baseBatchSize;
         this.admittedTtl = admittedTtl;
     }
@@ -65,6 +68,9 @@ public class ReleaseController {
      * @return the tickets actually admitted this call
      */
     public Set<String> releaseNext(String sku) {
+        if (killSwitch.isHalted()) {
+            return Set.of();
+        }
         int batchSize = nextBatchSize(baseBatchSize, metrics.errorRate());
         Set<String> admitted = queue.popEarliest(sku, batchSize);
         for (String ticketId : admitted) {
