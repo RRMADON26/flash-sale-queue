@@ -39,6 +39,12 @@ should be provable before the next is worth starting:
    real success/error rate. Built last since it's a tuning problem, not a
    binary correctness proof, and needs the first three to be real before it
    can be measured against anything.
+5. **Demo UI (queue visualizer)** — a standalone, animated, simulated
+   visualization of the mechanics: the thundering herd, the naive race
+   condition actually overselling, and the atomic gate correctly rejecting
+   the second request in real time. Deliberately *not* wired to the real
+   backend, so it teaches the concept without waiting on milestones 1–4;
+   wiring it to the real service afterward is its own stretch card.
 
 See the [project board](https://github.com/users/RRMADON26/projects/6) for the live card-by-card status.
 
