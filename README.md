@@ -12,6 +12,9 @@ reasoning before any of the cards below:
 📄 **[Architecture study](https://claude.ai/code/artifact/764e4b3f-0c21-48a4-8387-66650e1e0ad8)** — the problem, why a naive stock decrement races, the
 waiting-room pattern, the atomic claim, and where Palang plugs in.
 
+📄 **[Stack & deployment](https://claude.ai/code/artifact/18567724-3fd6-40bb-b686-f6ce1984a423)** — the exact dependency list, why each one and not an
+alternative, the package layout, and the horizontal-scaling story.
+
 ## The shape of it
 
 ```
