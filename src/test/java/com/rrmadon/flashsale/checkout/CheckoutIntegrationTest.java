@@ -31,19 +31,29 @@ class CheckoutIntegrationTest {
     @Autowired
     private StringRedisTemplate redis;
 
+    private static final String CLIENT_ID = "checkout-it-client";
+
     private String seedReservation(String sku) {
         String token = UUID.randomUUID().toString();
         redis.opsForValue().set("stock:" + sku, "5");
         long expiresAt = System.currentTimeMillis() / 1000 + 300;
         redis.opsForZSet().add(ReservationCleanupService.PENDING_KEY, sku + ":" + token, expiresAt);
+        redis.opsForValue().set("reservation-owner:" + sku + ":" + token, CLIENT_ID);
         return token;
     }
 
     private ResponseEntity<String> checkout(String idempotencyKey, String sku, String token) {
+        return checkout(idempotencyKey, sku, token, CLIENT_ID);
+    }
+
+    private ResponseEntity<String> checkout(String idempotencyKey, String sku, String token, String clientId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         if (idempotencyKey != null) {
             headers.set("Idempotency-Key", idempotencyKey);
+        }
+        if (clientId != null) {
+            headers.set("X-Client-Id", clientId);
         }
         String body = String.format("{\"sku\":\"%s\",\"reservationToken\":\"%s\"}", sku, token);
         return rest.exchange("/checkout", HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
@@ -95,5 +105,28 @@ class CheckoutIntegrationTest {
                 "unknown-" + UUID.randomUUID(), "it-" + UUID.randomUUID(), "does-not-exist");
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
+    }
+
+    @Test
+    void missingClientIdIsRejected() {
+        String sku = "it-" + UUID.randomUUID();
+        String token = seedReservation(sku);
+
+        ResponseEntity<String> response = checkout("no-client-" + UUID.randomUUID(), sku, token, null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    void reservationOwnedByAnotherClientCannotBeCheckedOutHere() {
+        String sku = "it-" + UUID.randomUUID();
+        String token = seedReservation(sku);
+
+        ResponseEntity<String> response = checkout(
+                "impostor-" + UUID.randomUUID(), sku, token, "someone-else");
+
+        assertThat(response.getStatusCode().value())
+                .as("a reservation bound to one client must not be checkable out by another")
+                .isEqualTo(404);
     }
 }

@@ -27,7 +27,7 @@ public class CheckoutService {
         this.clock = clock;
     }
 
-    public Optional<Order> checkout(CheckoutRequest request) {
+    public Optional<Order> checkout(CheckoutRequest request, String clientId) {
         String member = request.sku() + ":" + request.reservationToken();
         Double score = redis.opsForZSet().score(ReservationCleanupService.PENDING_KEY, member);
 
@@ -36,6 +36,15 @@ public class CheckoutService {
             // Stub payment capture (architecture doc §09: real gateway
             // integration is explicitly out of scope) -- this is where a
             // real charge attempt would go.
+            return Optional.empty();
+        }
+
+        // Card 26: the token alone is not enough -- it must belong to the
+        // caller redeeming it. Treated the same as "unknown reservation"
+        // (404, not 403) so a probing caller can't distinguish "wrong owner"
+        // from "doesn't exist" by response code.
+        String owner = redis.opsForValue().get("reservation-owner:" + request.sku() + ":" + request.reservationToken());
+        if (owner == null || !owner.equals(clientId)) {
             return Optional.empty();
         }
 

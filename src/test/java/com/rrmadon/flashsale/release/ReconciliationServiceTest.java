@@ -30,7 +30,8 @@ class ReconciliationServiceTest {
         // 3 completed sales, 2 still-held reservations, 5 untouched -- 10 total.
         for (int i = 0; i < 3; i++) {
             ClaimResult claim = reservations.claim(sku, Duration.ofMinutes(5));
-            checkout.checkout(new CheckoutRequest(sku, claim.reservationToken()));
+            redis.opsForValue().set("reservation-owner:" + sku + ":" + claim.reservationToken(), "recon-client");
+            checkout.checkout(new CheckoutRequest(sku, claim.reservationToken()), "recon-client");
         }
         for (int i = 0; i < 2; i++) {
             reservations.claim(sku, Duration.ofMinutes(5));

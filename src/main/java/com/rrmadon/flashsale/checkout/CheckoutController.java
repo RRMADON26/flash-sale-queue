@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -22,8 +23,12 @@ public class CheckoutController {
     }
 
     @PostMapping("/checkout")
-    public ResponseEntity<?> checkout(@RequestBody CheckoutRequest request) {
-        return checkoutService.checkout(request)
+    public ResponseEntity<?> checkout(@RequestBody CheckoutRequest request,
+                                       @RequestHeader(value = "X-Client-Id", required = false) String clientId) {
+        if (clientId == null || clientId.isBlank()) {
+            return ResponseEntity.status(400).body(Map.of("error", "X-Client-Id header required"));
+        }
+        return checkoutService.checkout(request, clientId)
                 .map(order -> {
                     metrics.recordSuccess();
                     return ResponseEntity.status(201).body((Object) toBody(order));

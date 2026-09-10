@@ -20,10 +20,13 @@ class AdmissionIntegrationTest {
     @Autowired
     private TestRestTemplate rest;
 
-    private ResponseEntity<String> join(String idempotencyKey, String sku) {
+    private ResponseEntity<String> join(String idempotencyKey, String sku, String clientId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Idempotency-Key", idempotencyKey);
+        if (clientId != null) {
+            headers.set("X-Client-Id", clientId);
+        }
         return rest.exchange("/queue/join", HttpMethod.POST,
                 new HttpEntity<>("{\"sku\":\"" + sku + "\"}", headers), String.class);
     }
@@ -32,9 +35,10 @@ class AdmissionIntegrationTest {
     void retriedJoinReturnsTheSameTicket_notASecondOne() {
         String sku = "admission-it-" + UUID.randomUUID();
         String key = "retry-" + UUID.randomUUID();
+        String clientId = "client-" + UUID.randomUUID();
 
-        ResponseEntity<String> first = join(key, sku);
-        ResponseEntity<String> retry = join(key, sku);
+        ResponseEntity<String> first = join(key, sku, clientId);
+        ResponseEntity<String> retry = join(key, sku, clientId);
 
         assertThat(first.getStatusCode().value()).isEqualTo(200);
         assertThat(retry.getBody())
@@ -46,6 +50,17 @@ class AdmissionIntegrationTest {
     void joinWithoutIdempotencyKeyIsRejected() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("X-Client-Id", "client-" + UUID.randomUUID());
+        ResponseEntity<String> response = rest.exchange("/queue/join", HttpMethod.POST,
+                new HttpEntity<>("{\"sku\":\"any\"}", headers), String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(400);
+    }
+
+    @Test
+    void joinWithoutClientIdIsRejected() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Idempotency-Key", "no-client-" + UUID.randomUUID());
         ResponseEntity<String> response = rest.exchange("/queue/join", HttpMethod.POST,
                 new HttpEntity<>("{\"sku\":\"any\"}", headers), String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(400);
