@@ -40,7 +40,7 @@ should be provable before the next is worth starting:
    binary correctness proof, and needs the first three to be real before it
    can be measured against anything.
 
-See the [project board](../../projects) for the live card-by-card status.
+See the [project board](https://github.com/users/RRMADON26/projects/6) for the live card-by-card status.
 
 ## Licence
 
