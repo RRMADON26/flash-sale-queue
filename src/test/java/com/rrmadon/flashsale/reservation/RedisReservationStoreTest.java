@@ -71,15 +71,17 @@ class RedisReservationStoreTest {
     }
 
     @Test
-    void releaseFreesTheReservationKeyButNotStock() {
+    void releaseRemovesThePendingReservationButNotStock() {
         ClaimResult r = store.claim(sku, Duration.ofMinutes(5));
-        assertThat(redis.hasKey("reservation:" + r.reservationToken())).isTrue();
+        String member = sku + ":" + r.reservationToken();
+        assertThat(redis.opsForZSet().score(ReservationCleanupService.PENDING_KEY, member)).isNotNull();
 
-        store.release(r.reservationToken());
+        store.release(sku, r.reservationToken());
 
-        assertThat(redis.hasKey("reservation:" + r.reservationToken())).isFalse();
-        // Releasing does not refund stock -- that's the TTL-expiry cleanup job's
-        // job (Card 4), a deliberate separation of concerns.
+        assertThat(redis.opsForZSet().score(ReservationCleanupService.PENDING_KEY, member)).isNull();
+        // Releasing does not refund stock -- that's ReservationCleanupService's job
+        // for abandoned reservations (Card 4); release() means checkout completed,
+        // the unit was genuinely sold, not that it's available again.
         assertThat(redis.opsForValue().get("stock:" + sku)).isEqualTo("2");
     }
 }

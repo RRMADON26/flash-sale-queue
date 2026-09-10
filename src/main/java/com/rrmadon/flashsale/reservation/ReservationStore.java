@@ -21,21 +21,24 @@ public interface ReservationStore {
      * @param sku the SKU's stock key name, e.g. "sku123"
      * @param ttl how long the reservation hold survives before it must be
      *            renewed (by completing checkout) or is released back to
-     *            the pool
+     *            the pool by {@link ReservationCleanupService}
      * @return the outcome; only {@code allowed() == true} means a unit was
      *         actually reserved
      */
     ClaimResult claim(String sku, Duration ttl);
 
     /**
-     * Releases a held reservation early — e.g. checkout failed in a way
-     * that should not hold the unit until the TTL naturally expires.
+     * Releases a held reservation early -- e.g. checkout completed, or
+     * failed in a way that should not hold the unit until the deadline
+     * naturally passes. Removes it from the pending-cleanup set so
+     * {@link ReservationCleanupService} never refunds it.
      *
+     * @param sku the SKU the reservation was claimed for
      * @param reservationToken the token returned by a successful claim
      */
-    void release(String reservationToken);
+    void release(String sku, String reservationToken);
 
-    /** Generates a fresh, unguessable reservation token. Not from Lua — see the class doc. */
+    /** Generates a fresh, unguessable reservation token. Not from Lua -- see the class doc. */
     static String newToken() {
         return UUID.randomUUID().toString();
     }

@@ -7,10 +7,11 @@ package com.rrmadon.flashsale.reservation;
  * @param remaining stock left after this claim, only meaningful when allowed
  * @param reservationToken the caller-supplied unguessable token identifying
  *                         this reservation, echoed back for convenience
+ * @param sku the SKU this reservation is for, needed to release() it later
  */
-public record ClaimResult(boolean allowed, long remaining, String reservationToken) {
+public record ClaimResult(boolean allowed, long remaining, String reservationToken, String sku) {
 
     public static ClaimResult rejected() {
-        return new ClaimResult(false, 0, null);
+        return new ClaimResult(false, 0, null, null);
     }
 }
