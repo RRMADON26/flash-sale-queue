@@ -50,6 +50,11 @@ should be provable before the next is worth starting:
    the second request in real time. Deliberately *not* wired to the real
    backend, so it teaches the concept without waiting on milestones 1–4;
    wiring it to the real service afterward is its own stretch card.
+6. **Production readiness** — Redis HA, a kill switch, real observability
+   and alerting, a stock/order reconciliation job, chaos-testing the
+   documented fail-open/fail-closed behaviour against a real dying Redis,
+   and resolving user identity at checkout (surfaced while fixing a real
+   reservation-token vulnerability in the architecture doc — see #2).
 
 See the [project board](https://github.com/users/RRMADON26/projects/6) for the live card-by-card status.
 
